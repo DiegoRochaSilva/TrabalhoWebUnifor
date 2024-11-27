@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Administrativa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Gestão Administrativa</h1>
+        <table class="table table-striped table-hover mt-4">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dados dos usuários serão renderizados aqui -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        
+        const fetchUsers = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/users');
+                const users = response.data;
+                const tableBody = document.querySelector('tbody');
+                tableBody.innerHTML = ''; 
+
+                users.forEach((user, index) => {
+                    tableBody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" onclick="editUser('${user._id}', '${user.name}', '${user.email}')">Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteUser('${user._id}')">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error('Erro ao buscar usuários:', error);
+                alert('Erro ao buscar usuários: ' + (error.response?.data?.message || error.message));
+            }
+        };
+
+        
+        const deleteUser = async (userId) => {
+            if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                try {
+                    await axios.delete(`http://localhost:5000/users/${userId}`);
+                    alert('Usuário excluído com sucesso!');
+                    fetchUsers(); 
+                } catch (error) {
+                    console.error('Erro ao excluir usuário:', error);
+                    alert('Erro ao excluir usuário: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        };
+
+        
+        const editUser = async (userId, currentName, currentEmail) => {
+            const newName = prompt('Digite o novo nome:', currentName);
+            const newEmail = prompt('Digite o novo e-mail:', currentEmail);
+
+            if (newName && newEmail) {
+                try {
+                    await axios.put(`http://localhost:5000/users/${userId}`, {
+                        name: newName,
+                        email: newEmail,
+                    });
+                    alert('Usuário atualizado com sucesso!');
+                    fetchUsers(); 
+                } catch (error) {
+                    console.error('Erro ao atualizar usuário:', error);
+                    alert('Erro ao atualizar usuário: ' + (error.response?.data?.message || error.message));
+                }
+            }
+        };
+
+        
+        fetchUsers();
+    </script>
+</body>
+</html>
